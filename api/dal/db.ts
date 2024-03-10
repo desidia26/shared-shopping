@@ -39,3 +39,16 @@ export const getListWithItems = async (id: number): Promise<ListWithItems> => {
     items: list.map((item) => item.shopping_list_items!)
   };
 }
+
+export const getAllLists = async (): Promise<ListWithItems[]> => {
+  const lists = await db.select().from(SHOPPING_LISTS).leftJoin(SHOPPING_LIST_ITEMS, eq(SHOPPING_LISTS.id, SHOPPING_LIST_ITEMS.shoppingListId))
+  return lists.reduce<ListWithItems[]>((acc, item) => {
+    const existingList = acc.find((list) => list.id === item.shopping_list.id);
+    if (existingList) {
+      existingList.items.push(item.shopping_list_items!);
+    } else {
+      acc.push({ ...item.shopping_list, items: [item.shopping_list_items!] });
+    }
+    return acc;
+  }, []);
+}

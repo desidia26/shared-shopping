@@ -1,24 +1,17 @@
-import { StyleSheet, Text, View } from "react-native";
-import { ListWithItems } from "./constants/types";
-import { useEffect, useState } from "react";
-import { getLists } from "./services/api";
+import { StyleSheet, View } from "react-native";
 import ListsView from "./components/ListsView";
+import { NativeBaseProvider } from "native-base";
+import { ListProvider } from "./contexts/ListContext";
 
 export default function App() {
-  const [shoppingLists, setShoppingLists] = useState<ListWithItems[]>([]);
-
-  useEffect(() => {
-    (async () => {
-      const lists = await getLists();
-      setShoppingLists(lists);
-    })();
-  }, []);
-
   return (
-    <View style={styles.container}>
-      <Text>'AS</Text>
-      <ListsView lists={shoppingLists} />
-    </View>
+    <NativeBaseProvider>
+      <View style={styles.container}>
+        <ListProvider>
+          <ListsView />
+        </ListProvider>
+      </View>
+    </NativeBaseProvider>
   );
 }
 
@@ -27,6 +20,5 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "grey",
     alignItems: "center",
-    justifyContent: "center",
   },
 });

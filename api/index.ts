@@ -1,7 +1,7 @@
 
 import express, {Request, Response , Application } from 'express';
 import dotenv from 'dotenv';
-import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, db, getListWithItems} from './dal/db'
+import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, db, getAllLists, getListWithItems} from './dal/db'
 import { eq } from 'drizzle-orm';
 //For env File 
 dotenv.config();
@@ -13,6 +13,7 @@ const port = process.env.PORT || 8000;
 app.use((req: Request, res: Response, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
   next();
 });
 app.use(express.json());
@@ -27,7 +28,7 @@ app.post('/lists', (req: Request, res: Response) => {
 });
 
 app.get('/lists', async (req: Request, res: Response) => {
-  const lists = await db.select().from(SHOPPING_LISTS).execute();
+  const lists = await getAllLists();
   return res.send(lists);
 });
 
@@ -63,14 +64,14 @@ app.get('/lists/:id/items', async (req: Request, res: Response) => {
   return res.send(listWithItems);
 });
 
-app.patch('/lists/:id/items/:itemId', async (req: Request, res: Response) => {
+app.patch('/items/:itemId', async (req: Request, res: Response) => {
   const itemId = parseInt(req.params.itemId);
   const newName = req.body.name;
   await db.update(SHOPPING_LIST_ITEMS).set({ name: newName }).where(eq(SHOPPING_LIST_ITEMS.id, itemId)).execute();
   return res.send('Item Updated');
 });
 
-app.delete('/lists/:id/items/:itemId', async (req: Request, res: Response) => {
+app.delete('/items/:itemId', async (req: Request, res: Response) => {
   const itemId = parseInt(req.params.itemId);
   await db.delete(SHOPPING_LIST_ITEMS).where(eq(SHOPPING_LIST_ITEMS.id, itemId)).execute();
   return res.send('Item Deleted');

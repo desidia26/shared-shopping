@@ -1,13 +1,11 @@
-import React, { useCallback, useState } from "react";
-import { View, Text, FlatList, Button, TextInput } from "react-native";
-import { ListWithItems } from "../constants/types";
+import React, { useCallback, useContext, useState } from "react";
+import { View, Text, FlatList, Button, Input } from "native-base";
 import { addList } from "../services/api";
+import { ListContext } from "../contexts/ListContext";
+import ListView from "./ListView";
 
-interface ListsViewProps {
-  lists: ListWithItems[];
-}
-
-const ListsView: React.FC<ListsViewProps> = ({ lists }) => {
+const ListsView: React.FC = () => {
+  const { shoppingLists } = useContext(ListContext);
   const [newListName, setNewListName] = useState("");
 
   const handleAddList = useCallback(() => {
@@ -17,26 +15,23 @@ const ListsView: React.FC<ListsViewProps> = ({ lists }) => {
 
   return (
     <View>
-      <Text>Shopping Lists</Text>
-      <TextInput
-        value={newListName}
-        onChangeText={setNewListName}
-        placeholder="Enter list name"
-      />
-      <Button title="Add List" onPress={() => handleAddList()} />
+      <View style={{ flexDirection: "row", marginBottom: 16 }}>
+        <Input
+          value={newListName}
+          onChangeText={setNewListName}
+          placeholder="Enter list name"
+        />
+        <Button onPress={() => handleAddList()}>
+          <Text>Add List</Text>
+        </Button>
+      </View>
       <FlatList
-        data={lists}
+        data={shoppingLists}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item: list }) => (
-          <View>
-            <Text>{list.name}</Text>
-            <FlatList
-              data={list.items}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => <Text>{item.name}</Text>}
-            />
-          </View>
-        )}
+        renderItem={({ item }) => {
+          if (!item) return null;
+          return <ListView list={item} />;
+        }}
       />
     </View>
   );
