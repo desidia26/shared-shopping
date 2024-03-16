@@ -29,6 +29,14 @@ const addItemToList = async (listId: number, name: string) => {
   return response.text();
 }
 
+const deleteList = async (listId: number) => {
+  console.log(listId)
+  const response = await fetch(`${API_URL}lists/${listId}`, {
+    method: 'DELETE',
+  });
+  return response.text();
+}
+
 const deleteItem = async (itemId: number) => {
   const response = await fetch(`${API_URL}items/${itemId}`, {
     method: 'DELETE',
@@ -36,4 +44,4 @@ const deleteItem = async (itemId: number) => {
   return response.text();
 }
 
-export { getLists, addList, addItemToList, deleteItem};
+export { getLists, addList, addItemToList, deleteItem, deleteList};

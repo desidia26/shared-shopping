@@ -12,7 +12,7 @@ export const SHOPPING_LIST_COLUMNS = {
   ID: 'id',
 };
 
-export const SHOPPING_LIST_ITEMS_TABLE = 'shopping_list_items';
+export const SHOPPING_LIST_ITEMS_TABLE = 'shopping_list_item';
 export const SHOPPING_LIST_ITEMS_COLUMNS = {
   ID: 'id',
   SHOPPING_LIST_ID: 'shopping_list_id',

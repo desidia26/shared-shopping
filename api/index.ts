@@ -3,6 +3,7 @@ import express, {Request, Response , Application } from 'express';
 import dotenv from 'dotenv';
 import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, db, getAllLists, getListWithItems} from './dal/db'
 import { eq } from 'drizzle-orm';
+import WebSocket from 'ws';
 //For env File 
 dotenv.config();
 
@@ -18,12 +19,24 @@ app.use((req: Request, res: Response, next) => {
 });
 app.use(express.json());
 
-app.post('/lists', (req: Request, res: Response) => {
+const sendMessageToClients = (obj: object) => {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(obj));
+    }
+  });
+}
+
+app.post('/lists', async (req: Request, res: Response) => {
   const name = req.body.name;
   if (!name) {
     return res.status(400).send('Name is required');
   }
-  db.insert(SHOPPING_LISTS).values({name}).execute();
+  const result = await db.insert(SHOPPING_LISTS).values({name}).returning({insertId: SHOPPING_LISTS.id})
+  sendMessageToClients({
+    action: 'addList',
+    list: { name, id: result[0].insertId }
+  });
   return res.send('List Created');
 });
 
@@ -48,6 +61,10 @@ app.patch('/lists/:id', async (req: Request, res: Response) => {
 app.delete('/lists/:id', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   await db.delete(SHOPPING_LISTS).where(eq(SHOPPING_LISTS.id, id)).execute();
+  sendMessageToClients({
+    action: 'deleteList',
+    id
+  });
   return res.send('List Deleted');
 });
 
@@ -77,6 +94,14 @@ app.delete('/items/:itemId', async (req: Request, res: Response) => {
   return res.send('Item Deleted');
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server is Fire at http://localhost:${port}`);
+});
+
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', (ws: WebSocket) => {
+  ws.on('message', (message: string) => {
+    console.log('received: %s', message);
+  });
 });

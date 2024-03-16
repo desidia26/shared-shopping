@@ -2,7 +2,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as constants from './constants'
-import { integer, pgTable, serial, text } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import dotenv from 'dotenv';
 import { eq } from 'drizzle-orm';
 dotenv.config();
@@ -16,12 +16,21 @@ export const db = drizzle(queryClient);
 export const SHOPPING_LISTS = pgTable(constants.SHOPPING_LIST_TABLE, {
   id:  serial('id').primaryKey(),
   name: text('name'),
+  description: text('description'),
+  user_id: integer('user_id'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
 });
 
 export const SHOPPING_LIST_ITEMS = pgTable(constants.SHOPPING_LIST_ITEMS_TABLE, {
   id:  serial('id').primaryKey(),
   name: text('name'),
   shoppingListId: integer('shopping_list_id').references(() => SHOPPING_LISTS.id),
+  quantity: integer('quantity'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+  completed: boolean('completed').default(false),
+  notes: text('notes'),
 });
 
 export type ShoppingList = typeof SHOPPING_LISTS.$inferSelect;
@@ -36,7 +45,7 @@ export const getListWithItems = async (id: number): Promise<ListWithItems> => {
   const list = await db.select().from(SHOPPING_LISTS).leftJoin(SHOPPING_LIST_ITEMS, eq(SHOPPING_LISTS.id, id))
   return {
     ...list[0].shopping_list,
-    items: list.map((item) => item.shopping_list_items!)
+    items: list.map((item) => item.shopping_list_item!)
   };
 }
 
@@ -45,9 +54,9 @@ export const getAllLists = async (): Promise<ListWithItems[]> => {
   return lists.reduce<ListWithItems[]>((acc, item) => {
     const existingList = acc.find((list) => list.id === item.shopping_list.id);
     if (existingList) {
-      existingList.items.push(item.shopping_list_items!);
+      existingList.items.push(item.shopping_list_item!);
     } else {
-      acc.push({ ...item.shopping_list, items: [item.shopping_list_items!] });
+      acc.push({ ...item.shopping_list, items: [item.shopping_list_item!] });
     }
     return acc;
   }, []);
