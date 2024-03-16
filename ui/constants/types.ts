@@ -6,6 +6,7 @@ interface ShoppingList {
 interface ShoppingListItem {
   name: string;
   id: number;
+  created_at?: string;
 }
 
 interface ListWithItems extends ShoppingList {

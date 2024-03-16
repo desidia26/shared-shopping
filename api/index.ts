@@ -8,7 +8,7 @@ import WebSocket from 'ws';
 dotenv.config();
 
 const app: Application = express();
-const port = process.env.PORT || 8000;
+const port = process.env.PORT ?? 8000;
 
 // enable CORS
 app.use((req: Request, res: Response, next) => {
@@ -71,7 +71,13 @@ app.delete('/lists/:id', async (req: Request, res: Response) => {
 app.post('/lists/:id/items', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   const name = req.body.name;
-  await db.insert(SHOPPING_LIST_ITEMS).values({ name, shoppingListId: id }).execute();
+  const result = await db.insert(SHOPPING_LIST_ITEMS).values({ name, shoppingListId: id }).returning({insertId: SHOPPING_LIST_ITEMS.id})
+  sendMessageToClients({
+    action: 'addItemToList',
+    listId: id,
+    itemId: result[0].insertId,
+    name
+  });
   return res.send('Item Created');
 });
 
@@ -81,16 +87,29 @@ app.get('/lists/:id/items', async (req: Request, res: Response) => {
   return res.send(listWithItems);
 });
 
-app.patch('/items/:itemId', async (req: Request, res: Response) => {
+app.patch('/lists/:listId/items/:itemId', async (req: Request, res: Response) => {
   const itemId = parseInt(req.params.itemId);
+  const listId = parseInt(req.params.listId);
   const newName = req.body.name;
   await db.update(SHOPPING_LIST_ITEMS).set({ name: newName }).where(eq(SHOPPING_LIST_ITEMS.id, itemId)).execute();
+  sendMessageToClients({
+    action: 'renameItem',
+    listId,
+    itemId,
+    name: newName
+  });
   return res.send('Item Updated');
 });
 
-app.delete('/items/:itemId', async (req: Request, res: Response) => {
+app.delete('/lists/:listId/items/:itemId', async (req: Request, res: Response) => {
   const itemId = parseInt(req.params.itemId);
+  const listId = parseInt(req.params.listId);
   await db.delete(SHOPPING_LIST_ITEMS).where(eq(SHOPPING_LIST_ITEMS.id, itemId)).execute();
+  sendMessageToClients({
+    action: 'deleteItemFromList',
+    itemId,
+    listId
+  });
   return res.send('Item Deleted');
 });
 

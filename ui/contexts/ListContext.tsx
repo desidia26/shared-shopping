@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useMemo,
-  useReducer,
-} from "react";
+import React, { createContext, useEffect, useMemo, useReducer } from "react";
 import { ListWithItems } from "../constants/types";
 import { getLists } from "../services/api";
 import { ACTION_NAMES, listReducer } from "../reducers/ListReducer";
@@ -56,6 +50,7 @@ const ListProvider: React.FC<{ children: React.ReactNode }> = ({
               listId: data.listId,
               itemId: data.itemId,
               name: data.name,
+              created_at: data.created_at,
             },
           });
           break;

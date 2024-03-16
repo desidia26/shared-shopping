@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { View, Text, FlatList, Button, Input } from "native-base";
 import { addList } from "../services/api";
 import { ListContext } from "../contexts/ListContext";
@@ -13,6 +13,12 @@ const ListsView: React.FC = () => {
     setNewListName("");
   }, [newListName]);
 
+  const sortedLists = useMemo(() => {
+    return shoppingLists.sort((a, b) => {
+      return a.id - b.id;
+    });
+  }, [shoppingLists]);
+
   return (
     <View>
       <View style={{ flexDirection: "row", marginBottom: 16 }}>
@@ -26,7 +32,7 @@ const ListsView: React.FC = () => {
         </Button>
       </View>
       <FlatList
-        data={shoppingLists}
+        data={sortedLists}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => {
           if (!item) return null;

@@ -1,16 +1,15 @@
-import React, { useCallback } from "react";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import React, { useCallback, useMemo } from "react";
+import { View, Text, FlatList } from "react-native";
 import { ListWithItems } from "../constants/types";
 import {
   Button,
   DeleteIcon,
   Heading,
-  Icon,
   IconButton,
   Input,
   Row,
 } from "native-base";
-import { addItemToList, deleteItem, deleteList } from "../services/api";
+import { addItemToList, deleteList } from "../services/api";
 import ItemView from "./ItemView";
 
 interface ListViewProps {
@@ -21,9 +20,16 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
   const [newItemName, setNewItemName] = React.useState("");
 
   const handleAddItem = useCallback(() => {
+    if (!newItemName) return;
     addItemToList(list.id, newItemName);
     setNewItemName("");
   }, [newItemName, list.id]);
+
+  const sortedItems = useMemo(() => {
+    return list.items.sort((a, b) => {
+      return a.id - b.id;
+    });
+  }, [list.items]);
 
   return (
     <View
@@ -39,15 +45,16 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
         <IconButton
           onPress={() => deleteList(list.id)}
           variant={"ghost"}
+          style={{ paddingRight: 0 }}
           icon={<DeleteIcon size="sm" />}
         ></IconButton>
       </Row>
       <FlatList
-        data={list.items}
+        data={sortedItems}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => {
           if (!item) return null;
-          return <ItemView item={item} />;
+          return <ItemView item={item} listId={list.id} />;
         }}
         ListFooterComponent={
           <View style={{ flexDirection: "row", marginTop: 16 }}>

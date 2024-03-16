@@ -26,6 +26,7 @@ interface AddItemToListPayload {
   listId: number;
   itemId: number;
   name: string;
+  created_at?: string;
 }
 
 interface DeleteItemFromListPayload {

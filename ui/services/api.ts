@@ -37,11 +37,22 @@ const deleteList = async (listId: number) => {
   return response.text();
 }
 
-const deleteItem = async (itemId: number) => {
-  const response = await fetch(`${API_URL}items/${itemId}`, {
+const deleteItem = async (itemId: number, listId: number) => {
+  const response = await fetch(`${API_URL}lists/${listId}/items/${itemId}`, {
     method: 'DELETE',
   });
   return response.text();
 }
 
-export { getLists, addList, addItemToList, deleteItem, deleteList};
+const renameItem = async (listId: number, itemId: number, name: string) => {
+  const response = await fetch(`${API_URL}lists/${listId}/items/${itemId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name })
+  });
+  return response.text();
+}
+
+export { getLists, addList, addItemToList, deleteItem, deleteList, renameItem };
