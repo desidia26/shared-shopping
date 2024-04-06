@@ -1,4 +1,3 @@
-export const DATABASE_NAME = 'shared_shopping';
 
 export const APP_USER_TABLE = 'app_user';
 export const APP_USER_COLUMNS = {

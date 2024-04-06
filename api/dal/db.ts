@@ -5,12 +5,12 @@ import * as constants from './constants'
 import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import dotenv from 'dotenv';
 import { eq } from 'drizzle-orm';
-dotenv.config();
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 const username = process.env.DB_USERNAME;
 const password = process.env.DB_PASSWORD;
 const hostname = process.env.DB_HOSTNAME;
-console.log(`postgres://${username}:${password}@${hostname}/${constants.DATABASE_NAME}`);
-const queryClient = postgres(`postgres://${username}:${password}@${hostname}/${constants.DATABASE_NAME}`);
+console.log(`postgres://${username}:${password}@${hostname}/`);
+const queryClient = postgres(`postgres://${username}:${password}@${hostname}/`);
 
 // CREATE TABLE IF NOT EXISTS app_user (
 //   id SERIAL PRIMARY KEY,

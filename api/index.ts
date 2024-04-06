@@ -27,6 +27,10 @@ const sendMessageToClients = (obj: object) => {
   });
 }
 
+app.get('/health', (req: Request, res: Response) => {
+  return res.send('Healthy');
+});
+
 app.post('/login', async (req: Request, res: Response) => {
   const username = req.body.username;
   const password = req.body.password;
