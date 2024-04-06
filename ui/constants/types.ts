@@ -13,4 +13,13 @@ interface ListWithItems extends ShoppingList {
   items: ShoppingListItem[];
 }
 
-export type { ShoppingList, ListWithItems, ShoppingListItem};
+interface AppUser {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type { ShoppingList, ListWithItems, ShoppingListItem, AppUser };

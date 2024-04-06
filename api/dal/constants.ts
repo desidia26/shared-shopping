@@ -1,7 +1,7 @@
 export const DATABASE_NAME = 'shared_shopping';
 
-export const USER_TABLE = 'users';
-export const USER_COLUMNS = {
+export const APP_USER_TABLE = 'app_user';
+export const APP_USER_COLUMNS = {
   ID: 'id',
   NAME: 'name',
   EMAIL: 'email',

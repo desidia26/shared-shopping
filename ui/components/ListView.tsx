@@ -9,7 +9,7 @@ import {
   Input,
   Row,
 } from "native-base";
-import { addItemToList, deleteList } from "../services/api";
+import { addItemToList, deleteList, renameList } from "../services/api";
 import ItemView from "./ItemView";
 
 interface ListViewProps {
@@ -18,6 +18,8 @@ interface ListViewProps {
 
 const ListView: React.FC<ListViewProps> = ({ list }) => {
   const [newItemName, setNewItemName] = React.useState("");
+  const [editing, setEditing] = React.useState(false);
+  const [newName, setNewName] = React.useState(list.name);
 
   const handleAddItem = useCallback(() => {
     if (!newItemName) return;
@@ -26,7 +28,9 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
   }, [newItemName, list.id]);
 
   const sortedItems = useMemo(() => {
+    if (!list.items) return [];
     return list.items.sort((a, b) => {
+      if (!a || !b) return 0;
       return a.id - b.id;
     });
   }, [list.items]);
@@ -41,7 +45,24 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
       }}
     >
       <Row justifyContent="space-between" marginBottom={4}>
-        <Heading>{list.name}</Heading>
+        {editing ? (
+          <Input
+            value={newName}
+            onChangeText={setNewName}
+            variant={"unstyled"}
+            autoFocus={true}
+            padding={0}
+            margin={0}
+            onBlur={() => {
+              setEditing(false);
+              if (newName !== list.name) {
+                renameList(list.id, newName);
+              }
+            }}
+          />
+        ) : (
+          <Heading onPress={() => setEditing(true)}>{list.name}</Heading>
+        )}
         <IconButton
           onPress={() => deleteList(list.id)}
           variant={"ghost"}
@@ -57,7 +78,13 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
           return <ItemView item={item} listId={list.id} />;
         }}
         ListFooterComponent={
-          <View style={{ flexDirection: "row", marginTop: 16 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              marginTop: 16,
+              justifyContent: "space-between",
+            }}
+          >
             <Input
               value={newItemName}
               onChangeText={setNewItemName}

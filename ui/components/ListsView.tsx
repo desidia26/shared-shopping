@@ -5,11 +5,11 @@ import { ListContext } from "../contexts/ListContext";
 import ListView from "./ListView";
 
 const ListsView: React.FC = () => {
-  const { shoppingLists } = useContext(ListContext);
+  const { shoppingLists, user_id } = useContext(ListContext);
   const [newListName, setNewListName] = useState("");
 
   const handleAddList = useCallback(() => {
-    addList(newListName);
+    addList(newListName, user_id);
     setNewListName("");
   }, [newListName]);
 
@@ -21,13 +21,25 @@ const ListsView: React.FC = () => {
 
   return (
     <View>
-      <View style={{ flexDirection: "row", marginBottom: 16 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          marginBottom: 16,
+          justifyContent: "space-between",
+        }}
+      >
         <Input
           value={newListName}
           onChangeText={setNewListName}
           placeholder="Enter list name"
+          style={{ backgroundColor: "white" }}
         />
-        <Button onPress={() => handleAddList()}>
+        <Button
+          onPress={() => handleAddList()}
+          style={{
+            marginLeft: 56,
+          }}
+        >
           <Text>Add List</Text>
         </Button>
       </View>

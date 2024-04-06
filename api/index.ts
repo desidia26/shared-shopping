@@ -1,7 +1,7 @@
 
 import express, {Request, Response , Application } from 'express';
 import dotenv from 'dotenv';
-import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, db, getAllLists, getListWithItems} from './dal/db'
+import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, APP_USERS, db, getAllLists, getListWithItems} from './dal/db'
 import { eq } from 'drizzle-orm';
 import WebSocket from 'ws';
 //For env File 
@@ -27,21 +27,37 @@ const sendMessageToClients = (obj: object) => {
   });
 }
 
+app.post('/login', async (req: Request, res: Response) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  console.log(username, password);
+  const user = await db.select().from(APP_USERS).where(eq(APP_USERS.name, username));
+  if (user.length === 0) {
+    return res.status(400).send('User not found');
+  }
+  if (user[0].password !== password) {
+    return res.status(400).send('Password is incorrect');
+  }
+  return res.send(user[0]);
+})
+
 app.post('/lists', async (req: Request, res: Response) => {
   const name = req.body.name;
+  const user_id = req.body.user_id;
   if (!name) {
     return res.status(400).send('Name is required');
   }
-  const result = await db.insert(SHOPPING_LISTS).values({name}).returning({insertId: SHOPPING_LISTS.id})
+  const result = await db.insert(SHOPPING_LISTS).values({name, user_id}).returning({insertId: SHOPPING_LISTS.id})
   sendMessageToClients({
     action: 'addList',
-    list: { name, id: result[0].insertId }
+    list: { name, id: result[0].insertId, items: []}
   });
   return res.send('List Created');
 });
 
 app.get('/lists', async (req: Request, res: Response) => {
-  const lists = await getAllLists();
+  const user_id = parseInt(req.query.user_id as string);
+  const lists = await getAllLists(user_id);
   return res.send(lists);
 });
 
@@ -55,11 +71,17 @@ app.patch('/lists/:id', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   const newName = req.body.name;
   await db.update(SHOPPING_LISTS).set({ name: newName }).where(eq(SHOPPING_LISTS.id, id)).execute();
+  sendMessageToClients({
+    action: 'renameList',
+    id,
+    name: newName
+  });
   return res.send('List Updated');
 });
 
 app.delete('/lists/:id', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
+  await db.delete(SHOPPING_LIST_ITEMS).where(eq(SHOPPING_LIST_ITEMS.shoppingListId, id)).execute();
   await db.delete(SHOPPING_LISTS).where(eq(SHOPPING_LISTS.id, id)).execute();
   sendMessageToClients({
     action: 'deleteList',
