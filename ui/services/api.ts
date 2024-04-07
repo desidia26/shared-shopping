@@ -1,6 +1,7 @@
 import { ListWithItems } from "../constants/types";
 
-const API_URL = 'http://localhost:8000/';
+const protocol = window.location.protocol
+export const API_URL = protocol === 'https:' ? 'https://shared-shopping-api.fly.dev/' : 'http://localhost:3000/';
 
 const getLists = async (user_id: number) : Promise<ListWithItems[]> => {
   const response = await fetch(`${API_URL}lists?user_id=${user_id}`);

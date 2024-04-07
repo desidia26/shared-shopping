@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useMemo, useReducer } from "react";
 import { ListWithItems } from "../constants/types";
-import { getLists } from "../services/api";
+import { API_URL, getLists } from "../services/api";
 import { ACTION_NAMES, listReducer } from "../reducers/ListReducer";
 
 interface ListContextProps {
@@ -27,7 +27,7 @@ const ListProvider: React.FC<{
   }, []);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000");
+    const ws = new WebSocket(API_URL.replace("http", "ws"));
     ws.onopen = () => {
       console.log("Connected to ws");
     };
