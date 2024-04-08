@@ -1,7 +1,7 @@
 import { ListWithItems } from "../constants/types";
 
 const protocol = window.location.protocol
-export const API_URL = protocol === 'https:' ? 'https://shared-shopping-api.fly.dev/' : 'http://localhost:3000/';
+export const API_URL = protocol === 'https:' ? 'https://shared-shopping-api.fly.dev/' : 'http://localhost:8000/';
 
 const getLists = async (user_id: number) : Promise<ListWithItems[]> => {
   const response = await fetch(`${API_URL}lists?user_id=${user_id}`);
@@ -81,4 +81,20 @@ const login = async (username: string, password: string) => {
   return response.json();
 }
 
-export { getLists, addList, addItemToList, deleteItem, deleteList, renameItem, renameList, login };
+const shareList = async (listId: number, username: string) => {
+  const response = await fetch(`${API_URL}lists/${listId}/share`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ username })
+  });
+  return response.text();
+}
+
+const getGuestUser = async () => {
+  const response = await fetch(`${API_URL}guest`);
+  return response.json();
+}
+
+export { getLists, shareList, addList, addItemToList, deleteItem, deleteList, renameItem, renameList, login, getGuestUser };

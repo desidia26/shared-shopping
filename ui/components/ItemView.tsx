@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, TouchableOpacity } from "react-native";
-import { Input, Row } from "native-base";
+import { Input, Row, Tooltip } from "native-base";
 import { deleteItem, renameItem } from "../services/api";
 import { ShoppingListItem } from "../constants/types";
 
@@ -30,7 +30,9 @@ const ItemView: React.FC<ItemViewProps> = ({ item, listId }) => {
           }}
         />
       ) : (
-        <Text onPress={() => setEditing(true)}>{item.name}</Text>
+        <Tooltip label="Click here to edit" openDelay={500}>
+          <Text onPress={() => setEditing(true)}>{item.name}</Text>
+        </Tooltip>
       )}
       <TouchableOpacity onPress={() => deleteItem(item.id, listId)}>
         <Text>X</Text>

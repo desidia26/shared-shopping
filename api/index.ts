@@ -1,8 +1,8 @@
 
 import express, {Request, Response , Application } from 'express';
 import dotenv from 'dotenv';
-import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, APP_USERS, db, getAllLists, getListWithItems} from './dal/db'
-import { eq } from 'drizzle-orm';
+import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, APP_USERS, db, getAllLists, getListWithItems, SHOPPING_LIST_SHARED_USER} from './dal/db'
+import { eq, sql } from 'drizzle-orm';
 import WebSocket from 'ws';
 //For env File 
 dotenv.config();
@@ -138,6 +138,24 @@ app.delete('/lists/:listId/items/:itemId', async (req: Request, res: Response) =
   });
   return res.send('Item Deleted');
 });
+
+app.post('/lists/:listId/share', async (req: Request, res: Response) => {
+  const listId = parseInt(req.params.listId);
+  const username = req.body.username;
+  const user = await db.select().from(APP_USERS).where(eq(APP_USERS.name, username));
+  if (user.length === 0) {
+    return res.status(400).send('User not found');
+  }
+  await db.insert(SHOPPING_LIST_SHARED_USER).values({ shopping_list_id: listId, user_id: user[0].id }).execute();
+  await db.update(SHOPPING_LISTS).set({ shared: true }).where(eq(SHOPPING_LISTS.id, listId)).execute();
+  return res.send('List Shared');
+});
+
+app.get('/guest', async (req: Request, res: Response) => {
+  const timestamp = new Date().toISOString();
+  const user = await db.insert(APP_USERS).values({ name: `Guest ${timestamp}`, email: `foo@localhost`, password: 'password' }).returning()
+  return res.send(user);
+})
 
 const server = app.listen(port, () => {
   console.log(`Server is Fire at http://localhost:${port}`);

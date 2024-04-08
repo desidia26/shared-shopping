@@ -1,7 +1,22 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Container, Input, Stack, Pressable, Icon, Text } from "native-base";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import {
+  Container,
+  Input,
+  Stack,
+  Pressable,
+  Icon,
+  Text,
+  Row,
+  Button,
+} from "native-base";
 import { MaterialIcons } from "@expo/vector-icons";
-import { login } from "../services/api";
+import { getGuestUser, login } from "../services/api";
 import { AppUser } from "../constants/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -22,7 +37,14 @@ const SignInView = ({
     });
   }, []);
 
-  const handleSignIn = () => {
+  const getGuest = useCallback(async () => {
+    const user = await getGuestUser();
+    console.log(user[0]);
+    setUser(user[0]);
+    AsyncStorage.setItem("user", JSON.stringify(user[0]));
+  }, []);
+
+  const handleSignIn = useCallback(() => {
     login(username, password)
       .then((response: AppUser) => {
         setUser(response);
@@ -31,10 +53,19 @@ const SignInView = ({
       .catch((err) => {
         console.warn(err);
       });
-  };
+  }, []);
 
   return (
-    <Container>
+    <Container
+      style={{
+        backgroundColor: "grey",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%",
+        width: "100%",
+        maxWidth: "100%",
+      }}
+    >
       <Stack space={4} w="100%" alignItems="center">
         <Input
           w={{
@@ -46,6 +77,7 @@ const SignInView = ({
               as={<MaterialIcons name="person" />}
               size={5}
               ml="2"
+              mr="2"
               color="muted.400"
             />
           }
@@ -70,6 +102,7 @@ const SignInView = ({
                   />
                 }
                 size={5}
+                marginLeft={2}
                 mr="2"
                 color="muted.400"
               />
@@ -77,9 +110,19 @@ const SignInView = ({
           }
           placeholder="Password"
         />
-        <Pressable onPress={handleSignIn}>
-          <Text>Sign In</Text>
-        </Pressable>
+        <Row>
+          <Button onPress={() => handleSignIn()}>
+            <Text color={"white"}>Sign In</Text>
+          </Button>
+          <Button
+            onPress={() => getGuest()}
+            style={{
+              marginLeft: 24,
+            }}
+          >
+            <Text color={"white"}>Guest Login</Text>
+          </Button>
+        </Row>
       </Stack>
       ;
     </Container>

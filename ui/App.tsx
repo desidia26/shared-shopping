@@ -14,7 +14,6 @@ export default function App() {
   return (
     <NativeBaseProvider>
       {!user ? (
-        // @ts-ignore
         <SignInView setUser={setUser} />
       ) : (
         <View style={styles.container}>

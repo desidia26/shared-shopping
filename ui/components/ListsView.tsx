@@ -21,6 +21,21 @@ const ListsView: React.FC = () => {
 
   return (
     <View>
+      <Text
+        style={{
+          maxWidth: 300,
+          marginVertical: 16,
+          backgroundColor: "white",
+          padding: 8,
+          textAlign: "center",
+          borderRadius: 4,
+        }}
+      >
+        This is a shared shopping app created for the Spring 2024 semester of
+        CS-GY 6083 by Benjamin Banister. Inserting/Deleting new items/lists
+        should be self explanatory. To update a list name or item name, just
+        click on the current name and start typing.
+      </Text>
       <View
         style={{
           flexDirection: "row",

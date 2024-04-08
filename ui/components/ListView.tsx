@@ -8,8 +8,18 @@ import {
   IconButton,
   Input,
   Row,
+  ShareIcon,
+  Modal,
+  FormControl,
+  Tooltip,
 } from "native-base";
-import { addItemToList, deleteList, renameList } from "../services/api";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import {
+  addItemToList,
+  deleteList,
+  renameList,
+  shareList,
+} from "../services/api";
 import ItemView from "./ItemView";
 
 interface ListViewProps {
@@ -20,12 +30,18 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
   const [newItemName, setNewItemName] = React.useState("");
   const [editing, setEditing] = React.useState(false);
   const [newName, setNewName] = React.useState(list.name);
+  const [showModal, setShowModal] = React.useState(false);
+  const [sharedUsername, setSharedUsername] = React.useState("");
 
   const handleAddItem = useCallback(() => {
     if (!newItemName) return;
     addItemToList(list.id, newItemName);
     setNewItemName("");
   }, [newItemName, list.id]);
+
+  const handleShareList = useCallback(() => {
+    setShowModal(true);
+  }, []);
 
   const sortedItems = useMemo(() => {
     if (!list.items) return [];
@@ -61,14 +77,29 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
             }}
           />
         ) : (
-          <Heading onPress={() => setEditing(true)}>{list.name}</Heading>
+          <Tooltip label="Click here to edit" openDelay={500}>
+            <Heading onPress={() => setEditing(true)}>{list.name}</Heading>
+          </Tooltip>
         )}
-        <IconButton
-          onPress={() => deleteList(list.id)}
-          variant={"ghost"}
-          style={{ paddingRight: 0 }}
-          icon={<DeleteIcon size="sm" />}
-        ></IconButton>
+        <Row>
+          {list.shared && (
+            <IconButton
+              icon={<Ionicons name="notifications" size={16} />}
+            ></IconButton>
+          )}
+          <IconButton
+            onPress={handleShareList}
+            variant={"ghost"}
+            style={{ paddingRight: 0 }}
+            icon={<ShareIcon size="sm" />}
+          ></IconButton>
+          <IconButton
+            onPress={() => deleteList(list.id)}
+            variant={"ghost"}
+            style={{ paddingRight: 0 }}
+            icon={<DeleteIcon size="sm" />}
+          ></IconButton>
+        </Row>
       </Row>
       <FlatList
         data={sortedItems}
@@ -97,6 +128,44 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
           </View>
         }
       />
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
+        <Modal.Content maxWidth="400px">
+          <Modal.CloseButton />
+          <Modal.Header>Share List</Modal.Header>
+          <Modal.Body>
+            <FormControl>
+              <FormControl.Label>Username</FormControl.Label>
+              <Input
+                value={sharedUsername}
+                onChangeText={setSharedUsername}
+                placeholder="Enter username"
+              />
+            </FormControl>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button.Group space={2}>
+              <Button
+                variant="ghost"
+                colorScheme="blueGray"
+                onPress={() => {
+                  setShowModal(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onPress={() => {
+                  setShowModal(false);
+                  shareList(list.id, sharedUsername);
+                  setSharedUsername("");
+                }}
+              >
+                Save
+              </Button>
+            </Button.Group>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal>
     </View>
   );
 };

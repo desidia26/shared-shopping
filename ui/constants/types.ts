@@ -1,6 +1,7 @@
 interface ShoppingList {
   id: number;
   name: string;
+  shared?: boolean;
 }
 
 interface ShoppingListItem {

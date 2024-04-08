@@ -5,56 +5,30 @@ import * as constants from './constants'
 import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import dotenv from 'dotenv';
 import { eq } from 'drizzle-orm';
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+
+dotenv.config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
 const username = process.env.DB_USERNAME;
 const password = process.env.DB_PASSWORD;
 const hostname = process.env.DB_HOSTNAME;
 console.log(`postgres://${username}:${password}@${hostname}/`);
 const queryClient = postgres(`postgres://${username}:${password}@${hostname}/`);
 
-// CREATE TABLE IF NOT EXISTS app_user (
+// CREATE TABLE IF NOT EXISTS list_notification_subscription (
 //   id SERIAL PRIMARY KEY,
-//   name VARCHAR(50),
-//   email VARCHAR(100),
-//   password VARCHAR(100),
-//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-// );
-
-// CREATE TABLE IF NOT EXISTS shopping_list (
-//   id SERIAL PRIMARY KEY,
-//   name VARCHAR(100),
-//   description TEXT,
 //   user_id INT,
-//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//   FOREIGN KEY (user_id) REFERENCES app_user(id)
-// );
-// CREATE TABLE IF NOT EXISTS shopping_list_shared_user (
 //   shopping_list_id INT,
-//   user_id INT,
-//   PRIMARY KEY (shopping_list_id, user_id),
-//   FOREIGN KEY (shopping_list_id) REFERENCES shopping_list(id),
-//   FOREIGN KEY (user_id) REFERENCES app_user(id)
-// );
-
-// CREATE TABLE IF NOT EXISTS shopping_list_item (
-//   id SERIAL PRIMARY KEY,
-//   shopping_list_id INT,
-//   name VARCHAR(100),
-//   quantity INT,
-//   completed BOOLEAN DEFAULT FALSE,
-//   notes TEXT,
 //   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//   FOREIGN KEY (user_id) REFERENCES app_user(id),
 //   FOREIGN KEY (shopping_list_id) REFERENCES shopping_list(id)
 // );
+
 
 export const db = drizzle(queryClient);
 export const SHOPPING_LISTS = pgTable(constants.SHOPPING_LIST_TABLE, {
   id:  serial('id').primaryKey(),
   name: text('name'),
   description: text('description'),
+  shared: boolean('shared').default(false),
   user_id: integer('user_id'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
@@ -64,11 +38,8 @@ export const SHOPPING_LIST_ITEMS = pgTable(constants.SHOPPING_LIST_ITEMS_TABLE, 
   id:  serial('id').primaryKey(),
   name: text('name'),
   shoppingListId: integer('shopping_list_id').references(() => SHOPPING_LISTS.id),
-  quantity: integer('quantity'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
-  completed: boolean('completed').default(false),
-  notes: text('notes'),
 });
 
 export const APP_USERS = pgTable(constants.APP_USER_TABLE, {
@@ -79,6 +50,24 @@ export const APP_USERS = pgTable(constants.APP_USER_TABLE, {
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 });
+
+export const SHOPPING_LIST_SHARED_USER = pgTable('shopping_list_shared_user', {
+  shopping_list_id: integer('shopping_list_id').references(() => SHOPPING_LISTS.id),
+  user_id: integer('user_id').references(() => APP_USERS.id),
+});
+
+export const LIST_NOTIFICATION_SUBSCRIPTION = pgTable('list_notification_subscription', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => APP_USERS.id),
+  shopping_list_id: integer('shopping_list_id').references(() => SHOPPING_LISTS.id),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+export type ListNotificationSubscription = typeof LIST_NOTIFICATION_SUBSCRIPTION.$inferSelect;
+export type NewListNotificationSubscription = typeof LIST_NOTIFICATION_SUBSCRIPTION.$inferInsert;
+
+export type ShoppingListSharedUser = typeof SHOPPING_LIST_SHARED_USER.$inferSelect;
+export type NewShoppingListSharedUser = typeof SHOPPING_LIST_SHARED_USER.$inferInsert;
 
 export type AppUser = typeof APP_USERS.$inferSelect;
 export type NewAppUser = typeof APP_USERS.$inferInsert;
@@ -101,7 +90,9 @@ export const getListWithItems = async (id: number): Promise<ListWithItems> => {
 
 export const getAllLists = async (user_id: number): Promise<ListWithItems[]> => {
   const lists = await db.select().from(SHOPPING_LISTS).where(eq(SHOPPING_LISTS.user_id, user_id)).leftJoin(SHOPPING_LIST_ITEMS, eq(SHOPPING_LISTS.id, SHOPPING_LIST_ITEMS.shoppingListId))
-  return lists.reduce<ListWithItems[]>((acc, item) => {
+  const sharedLists = await db.select().from(SHOPPING_LISTS).leftJoin(SHOPPING_LIST_SHARED_USER, eq(SHOPPING_LISTS.id, SHOPPING_LIST_SHARED_USER.shopping_list_id)).where(eq(SHOPPING_LIST_SHARED_USER.user_id, user_id)).leftJoin(SHOPPING_LIST_ITEMS, eq(SHOPPING_LISTS.id, SHOPPING_LIST_ITEMS.shoppingListId))
+  const combinedLists = lists.concat(sharedLists)
+  return combinedLists.reduce<ListWithItems[]>((acc, item) => {
     const existingList = acc.find((list) => list.id === item.shopping_list.id);
     if (existingList) {
       existingList.items.push(item.shopping_list_item!);
