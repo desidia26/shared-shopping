@@ -6,22 +6,12 @@ import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/
 import dotenv from 'dotenv';
 import { eq } from 'drizzle-orm';
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
+dotenv.config({ path: `.env.${process.env.NODE_ENV ?? 'local'}` });
 const username = process.env.DB_USERNAME;
 const password = process.env.DB_PASSWORD;
 const hostname = process.env.DB_HOSTNAME;
 console.log(`postgres://${username}:${password}@${hostname}/`);
 const queryClient = postgres(`postgres://${username}:${password}@${hostname}/`);
-
-// CREATE TABLE IF NOT EXISTS list_notification_subscription (
-//   id SERIAL PRIMARY KEY,
-//   user_id INT,
-//   shopping_list_id INT,
-//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//   FOREIGN KEY (user_id) REFERENCES app_user(id),
-//   FOREIGN KEY (shopping_list_id) REFERENCES shopping_list(id)
-// );
-
 
 export const db = drizzle(queryClient);
 export const SHOPPING_LISTS = pgTable(constants.SHOPPING_LIST_TABLE, {

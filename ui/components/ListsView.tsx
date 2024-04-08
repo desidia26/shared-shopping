@@ -35,6 +35,11 @@ const ListsView: React.FC = () => {
         CS-GY 6083 by Benjamin Banister. Inserting/Deleting new items/lists
         should be self explanatory. To update a list name or item name, just
         click on the current name and start typing.
+        <br />
+        <br />
+        <a href="https://github.com/desidia26/shared-shopping">
+          https://github.com/desidia26/shared-shopping
+        </a>
       </Text>
       <View
         style={{

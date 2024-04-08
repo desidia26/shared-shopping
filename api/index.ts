@@ -2,9 +2,8 @@
 import express, {Request, Response , Application } from 'express';
 import dotenv from 'dotenv';
 import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, APP_USERS, db, getAllLists, getListWithItems, SHOPPING_LIST_SHARED_USER} from './dal/db'
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import WebSocket from 'ws';
-//For env File 
 dotenv.config();
 
 const app: Application = express();
