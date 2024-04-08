@@ -58,6 +58,7 @@ BEGIN
     DELETE FROM list_notification_subscription WHERE user_id IN (SELECT id FROM app_user WHERE name LIKE 'Guest%');
     DELETE FROM notification WHERE user_id IN (SELECT id FROM app_user WHERE name LIKE 'Guest%');
     DELETE FROM shopping_list_shared_user WHERE user_id IN (SELECT id FROM app_user WHERE name LIKE 'Guest%');
+    DELETE FROM shopping_list_item WHERE shopping_list_id IN (SELECT id FROM shopping_list WHERE user_id IN (SELECT id FROM app_user WHERE name LIKE 'Guest%'));
     DELETE FROM shopping_list WHERE user_id IN (SELECT id FROM app_user WHERE name LIKE 'Guest%');
     DELETE FROM app_user WHERE name LIKE 'Guest%';
 END;
