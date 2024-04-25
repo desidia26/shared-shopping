@@ -19,14 +19,16 @@ import {
   deleteList,
   renameList,
   shareList,
+  subscribeToList,
 } from "../services/api";
 import ItemView from "./ItemView";
 
 interface ListViewProps {
   list: ListWithItems;
+  user_id: number;
 }
 
-const ListView: React.FC<ListViewProps> = ({ list }) => {
+const ListView: React.FC<ListViewProps> = ({ list, user_id }) => {
   const [newItemName, setNewItemName] = React.useState("");
   const [editing, setEditing] = React.useState(false);
   const [newName, setNewName] = React.useState(list.name);
@@ -35,7 +37,7 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
 
   const handleAddItem = useCallback(() => {
     if (!newItemName) return;
-    addItemToList(list.id, newItemName);
+    addItemToList(list.id, newItemName, user_id);
     setNewItemName("");
   }, [newItemName, list.id]);
 
@@ -85,6 +87,10 @@ const ListView: React.FC<ListViewProps> = ({ list }) => {
           {list.shared && (
             <IconButton
               icon={<Ionicons name="notifications" size={16} />}
+              onPress={() => {
+                subscribeToList(list.id, user_id);
+              }}
+              style={{ paddingRight: 0 }}
             ></IconButton>
           )}
           <IconButton

@@ -68,7 +68,7 @@ const ListsView: React.FC = () => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => {
           if (!item) return null;
-          return <ListView list={item} />;
+          return <ListView list={item} user_id={user_id} />;
         }}
       />
     </View>

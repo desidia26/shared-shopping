@@ -19,13 +19,13 @@ const addList = async (name: string, user_id: number) => {
   return response.text();
 }
 
-const addItemToList = async (listId: number, name: string) => {
+const addItemToList = async (listId: number, name: string, user_id: number) => {
   const response = await fetch(`${API_URL}lists/${listId}/items`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name, user_id })
   });
   return response.text();
 }
@@ -92,9 +92,32 @@ const shareList = async (listId: number, username: string) => {
   return response.text();
 }
 
+const subscribeToList = async (listId: number, userId: number) => {
+  const response = await fetch(`${API_URL}lists/${listId}/subscribe`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ userId })
+  });
+  return response.text();
+}
+
 const getGuestUser = async () => {
   const response = await fetch(`${API_URL}guest`);
   return response.json();
 }
 
-export { getLists, shareList, addList, addItemToList, deleteItem, deleteList, renameItem, renameList, login, getGuestUser };
+export { 
+  getLists, 
+  shareList, 
+  addList, 
+  addItemToList, 
+  deleteItem, 
+  deleteList, 
+  renameItem, 
+  renameList, 
+  login, 
+  getGuestUser, 
+  subscribeToList 
+};

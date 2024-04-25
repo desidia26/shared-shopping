@@ -2,7 +2,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as constants from './constants'
-import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, json, pgTable, pgView, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import dotenv from 'dotenv';
 import { eq } from 'drizzle-orm';
 
@@ -14,6 +14,18 @@ console.log(`postgres://${username}:${password}@${hostname}/`);
 const queryClient = postgres(`postgres://${username}:${password}@${hostname}/`);
 
 export const db = drizzle(queryClient);
+
+export const SHOPPING_LIST_WITH_ITEMS = pgView('shopping_list_with_items', {
+  id: integer('id'),
+  name: text('name'),
+  description: text('description'),
+  shared: boolean('shared'),
+  user_id: integer('user_id'),
+  created_at: timestamp('created_at'),
+  updated_at: timestamp('updated_at'),
+  items: json('items')
+}).existing();
+
 export const SHOPPING_LISTS = pgTable(constants.SHOPPING_LIST_TABLE, {
   id:  serial('id').primaryKey(),
   name: text('name'),
@@ -29,6 +41,7 @@ export const SHOPPING_LIST_ITEMS = pgTable(constants.SHOPPING_LIST_ITEMS_TABLE, 
   name: text('name'),
   shoppingListId: integer('shopping_list_id').references(() => SHOPPING_LISTS.id),
   created_at: timestamp('created_at').defaultNow(),
+  created_by: integer('created_by'),
   updated_at: timestamp('updated_at').defaultNow(),
 });
 
@@ -53,6 +66,17 @@ export const LIST_NOTIFICATION_SUBSCRIPTION = pgTable('list_notification_subscri
   created_at: timestamp('created_at').defaultNow(),
 });
 
+export const NOTIFICATIONS = pgTable('notification', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => APP_USERS.id),
+  message: text('message'),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+
+export type Notification = typeof NOTIFICATIONS.$inferSelect;
+export type NewNotification = typeof NOTIFICATIONS.$inferInsert;
+
 export type ListNotificationSubscription = typeof LIST_NOTIFICATION_SUBSCRIPTION.$inferSelect;
 export type NewListNotificationSubscription = typeof LIST_NOTIFICATION_SUBSCRIPTION.$inferInsert;
 
@@ -71,24 +95,20 @@ export type NewShoppingListItem = typeof SHOPPING_LIST_ITEMS.$inferInsert;
 export type ListWithItems = ShoppingList & { items: ShoppingListItem[] };
 
 export const getListWithItems = async (id: number): Promise<ListWithItems> => {
-  const list = await db.select().from(SHOPPING_LISTS).leftJoin(SHOPPING_LIST_ITEMS, eq(SHOPPING_LISTS.id, id))
-  return {
-    ...list[0].shopping_list,
-    items: list.map((item) => item.shopping_list_item!)
-  };
+  const result = await db.select().from(SHOPPING_LIST_WITH_ITEMS).where(eq(SHOPPING_LISTS.id, id));
+  // @ts-ignore
+  return result;
 }
 
 export const getAllLists = async (user_id: number): Promise<ListWithItems[]> => {
-  const lists = await db.select().from(SHOPPING_LISTS).where(eq(SHOPPING_LISTS.user_id, user_id)).leftJoin(SHOPPING_LIST_ITEMS, eq(SHOPPING_LISTS.id, SHOPPING_LIST_ITEMS.shoppingListId))
-  const sharedLists = await db.select().from(SHOPPING_LISTS).leftJoin(SHOPPING_LIST_SHARED_USER, eq(SHOPPING_LISTS.id, SHOPPING_LIST_SHARED_USER.shopping_list_id)).where(eq(SHOPPING_LIST_SHARED_USER.user_id, user_id)).leftJoin(SHOPPING_LIST_ITEMS, eq(SHOPPING_LISTS.id, SHOPPING_LIST_ITEMS.shoppingListId))
-  const combinedLists = lists.concat(sharedLists)
-  return combinedLists.reduce<ListWithItems[]>((acc, item) => {
-    const existingList = acc.find((list) => list.id === item.shopping_list.id);
-    if (existingList) {
-      existingList.items.push(item.shopping_list_item!);
-    } else {
-      acc.push({ ...item.shopping_list, items: [item.shopping_list_item!] });
-    }
-    return acc;
-  }, []);
+  const myLists = await db.select().from(SHOPPING_LIST_WITH_ITEMS).where(eq(SHOPPING_LIST_WITH_ITEMS.user_id, user_id));
+  const sharedListIds = await db.select({shopping_list_id: SHOPPING_LIST_SHARED_USER.shopping_list_id}).from(SHOPPING_LIST_SHARED_USER).where(eq(SHOPPING_LIST_SHARED_USER.user_id, user_id));
+
+  const sharedLists = []
+  for (const sharedListId of sharedListIds) {
+    const sharedList = await db.select().from(SHOPPING_LIST_WITH_ITEMS).where(eq(SHOPPING_LIST_WITH_ITEMS.id, sharedListId.shopping_list_id!));
+    sharedLists.push(...sharedList);
+  }
+  // @ts-ignore
+  return [...myLists, ...sharedLists];
 }

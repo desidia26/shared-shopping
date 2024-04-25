@@ -1,13 +1,14 @@
 
 import express, {Request, Response , Application } from 'express';
 import dotenv from 'dotenv';
-import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, APP_USERS, db, getAllLists, getListWithItems, SHOPPING_LIST_SHARED_USER} from './dal/db'
+import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, APP_USERS, db, getAllLists, getListWithItems, SHOPPING_LIST_SHARED_USER, LIST_NOTIFICATION_SUBSCRIPTION, NOTIFICATIONS} from './dal/db'
 import { eq } from 'drizzle-orm';
 import WebSocket from 'ws';
 dotenv.config();
 
 const app: Application = express();
 const port = process.env.PORT ?? 8000;
+
 
 // enable CORS
 app.use((req: Request, res: Response, next) => {
@@ -17,6 +18,8 @@ app.use((req: Request, res: Response, next) => {
   next();
 });
 app.use(express.json());
+
+
 
 const sendMessageToClients = (obj: object) => {
   wss.clients.forEach((client) => {
@@ -53,7 +56,7 @@ app.post('/lists', async (req: Request, res: Response) => {
   const result = await db.insert(SHOPPING_LISTS).values({name, user_id}).returning({insertId: SHOPPING_LISTS.id})
   sendMessageToClients({
     action: 'addList',
-    list: { name, id: result[0].insertId, items: []}
+    list: { name, id: result[0].insertId, items: [], user_id}
   });
   return res.send('List Created');
 });
@@ -96,7 +99,8 @@ app.delete('/lists/:id', async (req: Request, res: Response) => {
 app.post('/lists/:id/items', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   const name = req.body.name;
-  const result = await db.insert(SHOPPING_LIST_ITEMS).values({ name, shoppingListId: id }).returning({insertId: SHOPPING_LIST_ITEMS.id})
+  const user_id = req.body.user_id;
+  const result = await db.insert(SHOPPING_LIST_ITEMS).values({ name, shoppingListId: id, created_by: user_id }).returning({insertId: SHOPPING_LIST_ITEMS.id})
   sendMessageToClients({
     action: 'addItemToList',
     listId: id,
@@ -148,6 +152,13 @@ app.post('/lists/:listId/share', async (req: Request, res: Response) => {
   await db.insert(SHOPPING_LIST_SHARED_USER).values({ shopping_list_id: listId, user_id: user[0].id }).execute();
   await db.update(SHOPPING_LISTS).set({ shared: true }).where(eq(SHOPPING_LISTS.id, listId)).execute();
   return res.send('List Shared');
+});
+
+app.post('/lists/:listId/subscribe', async (req: Request, res: Response) => {
+  const listId = parseInt(req.params.listId);
+  const userId = req.body.userId;
+  await db.insert(LIST_NOTIFICATION_SUBSCRIPTION).values({ shopping_list_id: listId, user_id: userId }).execute();
+  return res.send('Subscribed');
 });
 
 app.get('/guest', async (req: Request, res: Response) => {

@@ -39,7 +39,6 @@ const SignInView = ({
 
   const getGuest = useCallback(async () => {
     const user = await getGuestUser();
-    console.log(user[0]);
     setUser(user[0]);
     AsyncStorage.setItem("user", JSON.stringify(user[0]));
   }, []);
@@ -53,7 +52,7 @@ const SignInView = ({
       .catch((err) => {
         console.warn(err);
       });
-  }, []);
+  }, [username, password]);
 
   return (
     <Container

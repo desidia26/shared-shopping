@@ -35,6 +35,7 @@ const ListProvider: React.FC<{
       const data = JSON.parse(msg.data);
       switch (data.action) {
         case "addList":
+          if (data.list.user_id !== user_id) return;
           dispatch({
             type: ACTION_NAMES.ADD_LIST,
             payload: { list: data.list },
