@@ -27,7 +27,9 @@ const ListProvider: React.FC<{
   }, []);
 
   useEffect(() => {
-    const ws = new WebSocket(API_URL.replace("http", "ws"));
+    const ws = new WebSocket(
+      `${API_URL.replace("http", "ws")}?user_id=${user_id}`
+    );
     ws.onopen = () => {
       console.log("Connected to ws");
     };
@@ -70,6 +72,18 @@ const ListProvider: React.FC<{
             payload: { id: data.id, name: data.name },
           });
           break;
+        case "subscribeToList":
+          dispatch({
+            type: ACTION_NAMES.SUBSCRIBE_TO_LIST,
+            payload: { id: data.id },
+          });
+          break;
+        case "unsubscribeFromList":
+          dispatch({
+            type: ACTION_NAMES.UNSUBSCRIBE_FROM_LIST,
+            payload: { id: data.id },
+          });
+          break;
         case "renameItem":
           dispatch({
             type: ACTION_NAMES.RENAME_ITEM,
@@ -87,7 +101,7 @@ const ListProvider: React.FC<{
     return () => {
       ws.close();
     };
-  }, []);
+  }, [user_id]);
 
   useEffect(() => {
     (async () => {

@@ -78,22 +78,37 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
--- Create a function that inserts a notification for all users subscribed to a list when an item is added
 CREATE OR REPLACE FUNCTION notify_users_on_item_added() RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO notification (user_id, message)
-  SELECT user_id, 'An item was added to a list you are subscribed to.'
-  FROM list_notification_subscription
-  WHERE shopping_list_id = NEW.shopping_list_id AND user_id != NEW.created_by;
-
-  RETURN NEW;
+    INSERT INTO notification (user_id, message)
+    SELECT lns.user_id, 'Item ' || NEW.name || ' added to list ' || sl.name
+    FROM list_notification_subscription lns
+    JOIN shopping_list sl ON lns.shopping_list_id = sl.id
+    WHERE sl.id = NEW.shopping_list_id;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS item_added ON shopping_list_item;
+CREATE OR REPLACE FUNCTION notify_users_on_item_removed() RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO notification (user_id, message)
+    SELECT lns.user_id, 'Item ' || OLD.name || ' removed from list ' || sl.name
+    FROM list_notification_subscription lns
+    JOIN shopping_list sl ON lns.shopping_list_id = sl.id
+    WHERE sl.id = OLD.shopping_list_id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
 
--- Create a trigger that calls the above function whenever a new item is inserted into the shopping_list_item table
+
+DROP TRIGGER IF EXISTS item_added ON shopping_list_item;
+DROP TRIGGER IF EXISTS item_removed ON shopping_list_item;
+
+CREATE TRIGGER item_removed
+AFTER DELETE ON shopping_list_item
+FOR EACH ROW
+EXECUTE FUNCTION notify_users_on_item_removed();
+
 CREATE TRIGGER item_added
 AFTER INSERT ON shopping_list_item
 FOR EACH ROW

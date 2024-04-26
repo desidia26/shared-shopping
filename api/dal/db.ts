@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import * as constants from './constants'
 import { boolean, integer, json, pgTable, pgView, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import dotenv from 'dotenv';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV ?? 'local'}` });
 const username = process.env.DB_USERNAME;
@@ -94,20 +94,30 @@ export type NewShoppingListItem = typeof SHOPPING_LIST_ITEMS.$inferInsert;
 
 export type ListWithItems = ShoppingList & { items: ShoppingListItem[] };
 
+export type EnhancedListWithItems = ListWithItems & { subscribed: boolean };
+
 export const getListWithItems = async (id: number): Promise<ListWithItems> => {
   const result = await db.select().from(SHOPPING_LIST_WITH_ITEMS).where(eq(SHOPPING_LISTS.id, id));
   // @ts-ignore
   return result;
 }
 
-export const getAllLists = async (user_id: number): Promise<ListWithItems[]> => {
+export const getAllLists = async (user_id: number): Promise<EnhancedListWithItems[]> => {
   const myLists = await db.select().from(SHOPPING_LIST_WITH_ITEMS).where(eq(SHOPPING_LIST_WITH_ITEMS.user_id, user_id));
   const sharedListIds = await db.select({shopping_list_id: SHOPPING_LIST_SHARED_USER.shopping_list_id}).from(SHOPPING_LIST_SHARED_USER).where(eq(SHOPPING_LIST_SHARED_USER.user_id, user_id));
 
   const sharedLists = []
   for (const sharedListId of sharedListIds) {
     const sharedList = await db.select().from(SHOPPING_LIST_WITH_ITEMS).where(eq(SHOPPING_LIST_WITH_ITEMS.id, sharedListId.shopping_list_id!));
-    sharedLists.push(...sharedList);
+    const enhanced = sharedList[0] as EnhancedListWithItems;
+    const subscribed = await db.select().from(LIST_NOTIFICATION_SUBSCRIPTION).where(and(eq(LIST_NOTIFICATION_SUBSCRIPTION.shopping_list_id, sharedListId.shopping_list_id!), eq(LIST_NOTIFICATION_SUBSCRIPTION.user_id, user_id)));
+    if (subscribed.length > 0) {
+      enhanced.subscribed = true;
+    } else {
+      enhanced.subscribed = false;
+    }
+
+    sharedLists.push(enhanced);
   }
   // @ts-ignore
   return [...myLists, ...sharedLists];

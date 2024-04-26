@@ -103,6 +103,17 @@ const subscribeToList = async (listId: number, userId: number) => {
   return response.text();
 }
 
+const unsubscribeFromList = async (listId: number, userId: number) => {
+  const response = await fetch(`${API_URL}lists/${listId}/unsubscribe`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ userId, listId })
+  });
+  return response.text();
+}
+
 const getGuestUser = async () => {
   const response = await fetch(`${API_URL}guest`);
   return response.json();
@@ -115,6 +126,7 @@ export {
   addItemToList, 
   deleteItem, 
   deleteList, 
+  unsubscribeFromList,
   renameItem, 
   renameList, 
   login, 

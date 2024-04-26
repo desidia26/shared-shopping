@@ -20,6 +20,7 @@ import {
   renameList,
   shareList,
   subscribeToList,
+  unsubscribeFromList,
 } from "../services/api";
 import ItemView from "./ItemView";
 
@@ -84,15 +85,36 @@ const ListView: React.FC<ListViewProps> = ({ list, user_id }) => {
           </Tooltip>
         )}
         <Row>
-          {list.shared && (
-            <IconButton
-              icon={<Ionicons name="notifications" size={16} />}
-              onPress={() => {
-                subscribeToList(list.id, user_id);
-              }}
-              style={{ paddingRight: 0 }}
-            ></IconButton>
-          )}
+          {list.shared &&
+            (!list.subscribed ? (
+              <IconButton
+                icon={
+                  <Ionicons
+                    name="notifications"
+                    size={16}
+                    color={"rgb(8, 145, 178)"}
+                  />
+                }
+                onPress={() => {
+                  subscribeToList(list.id, user_id);
+                }}
+                style={{ paddingRight: 0 }}
+              ></IconButton>
+            ) : (
+              <IconButton
+                icon={
+                  <Ionicons
+                    name="notifications-off"
+                    size={16}
+                    color={"rgb(8, 145, 178)"}
+                  />
+                }
+                onPress={() => {
+                  unsubscribeFromList(list.id, user_id);
+                }}
+                style={{ paddingRight: 0 }}
+              ></IconButton>
+            ))}
           <IconButton
             onPress={handleShareList}
             variant={"ghost"}

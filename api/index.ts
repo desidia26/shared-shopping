@@ -2,7 +2,7 @@
 import express, {Request, Response , Application } from 'express';
 import dotenv from 'dotenv';
 import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, APP_USERS, db, getAllLists, getListWithItems, SHOPPING_LIST_SHARED_USER, LIST_NOTIFICATION_SUBSCRIPTION, NOTIFICATIONS} from './dal/db'
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import WebSocket from 'ws';
 dotenv.config();
 
@@ -19,6 +19,13 @@ app.use((req: Request, res: Response, next) => {
 });
 app.use(express.json());
 
+const deleteList = async (id: number) => {
+  await db.delete(SHOPPING_LIST_ITEMS).where(eq(SHOPPING_LIST_ITEMS.shoppingListId, id)).execute();
+  await db.delete(SHOPPING_LIST_SHARED_USER).where(eq(SHOPPING_LIST_SHARED_USER.shopping_list_id, id)).execute();
+  await db.delete(LIST_NOTIFICATION_SUBSCRIPTION).where(eq(LIST_NOTIFICATION_SUBSCRIPTION.shopping_list_id, id)).execute();
+  await db.delete(SHOPPING_LISTS).where(eq(SHOPPING_LISTS.id, id)).execute();
+}
+
 
 
 const sendMessageToClients = (obj: object) => {
@@ -27,6 +34,13 @@ const sendMessageToClients = (obj: object) => {
       client.send(JSON.stringify(obj));
     }
   });
+}
+
+const sendMessageToUser = (user_id: number, obj: object) => {
+  const ws = userConnections.get(user_id);
+  if (ws) {
+    ws.send(JSON.stringify(obj));
+  }
 }
 
 app.get('/health', (req: Request, res: Response) => {
@@ -87,8 +101,7 @@ app.patch('/lists/:id', async (req: Request, res: Response) => {
 
 app.delete('/lists/:id', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
-  await db.delete(SHOPPING_LIST_ITEMS).where(eq(SHOPPING_LIST_ITEMS.shoppingListId, id)).execute();
-  await db.delete(SHOPPING_LISTS).where(eq(SHOPPING_LISTS.id, id)).execute();
+  await deleteList(id);
   sendMessageToClients({
     action: 'deleteList',
     id
@@ -158,7 +171,22 @@ app.post('/lists/:listId/subscribe', async (req: Request, res: Response) => {
   const listId = parseInt(req.params.listId);
   const userId = req.body.userId;
   await db.insert(LIST_NOTIFICATION_SUBSCRIPTION).values({ shopping_list_id: listId, user_id: userId }).execute();
+  sendMessageToUser(userId, {
+    action: 'subscribeToList',
+    id: listId
+  });
   return res.send('Subscribed');
+});
+
+app.post('/lists/:listId/unsubscribe', async (req: Request, res: Response) => {
+  const listId = parseInt(req.params.listId);
+  const userId = req.body.userId;
+  await db.delete(LIST_NOTIFICATION_SUBSCRIPTION).where(and(eq(LIST_NOTIFICATION_SUBSCRIPTION.shopping_list_id, listId), eq(LIST_NOTIFICATION_SUBSCRIPTION.user_id, userId))).execute();
+  sendMessageToUser(userId, {
+    action: 'unsubscribeFromList',
+    id: listId
+  });
+  return res.send('Unsubscribed');
 });
 
 app.get('/guest', async (req: Request, res: Response) => {
@@ -171,9 +199,12 @@ const server = app.listen(port, () => {
   console.log(`Server is Fire at http://localhost:${port}`);
 });
 
-const wss = new WebSocket.Server({ server });
+const userConnections = new Map<number, WebSocket>();
 
-wss.on('connection', (ws: WebSocket) => {
+const wss = new WebSocket.Server({ server });
+wss.on('connection', (ws: WebSocket, req) => {
+  const user_id = parseInt(req.url?.split('=')[1] ?? '0');
+  userConnections.set(user_id, ws);
   ws.on('message', (message: string) => {
     console.log('received: %s', message);
   });

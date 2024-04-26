@@ -7,8 +7,18 @@ export const ACTION_NAMES = {
   ADD_ITEM_TO_LIST: 'ADD_ITEM_TO_LIST',
   DELETE_ITEM_FROM_LIST: 'DELETE_ITEM_FROM_LIST',
   RENAME_LIST: 'RENAME_LIST',
+  SUBSCRIBE_TO_LIST: 'SUBSCRIBE_TO_LIST',
+  UNSUBSCRIBE_FROM_LIST: 'UNSUBSCRIBE_FROM_LIST',
   RENAME_ITEM: 'RENAME_ITEM',
 };
+
+interface UnsubscribeFromListPayload {
+  id: number;
+}
+
+interface SubscribeToListPayload {
+  id: number;
+}
 
 interface SetListPayload {
   lists: ListWithItems[];
@@ -96,6 +106,20 @@ export const listReducer = (state: ListWithItems[], action: Action) => {
               item.name = (action as { payload: RenameItemPayload }).payload.name;
             }
           });
+        }
+      });
+      return newState;
+    case ACTION_NAMES.SUBSCRIBE_TO_LIST:
+      newState.forEach((list) => {
+        if (list.id === (action as { payload: SubscribeToListPayload }).payload.id) {
+          list.subscribed = true;
+        }
+      });
+      return newState;
+    case ACTION_NAMES.UNSUBSCRIBE_FROM_LIST:
+      newState.forEach((list) => {
+        if (list.id === (action as { payload: UnsubscribeFromListPayload }).payload.id) {
+          list.subscribed = false;
         }
       });
       return newState;

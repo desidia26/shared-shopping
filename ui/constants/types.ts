@@ -2,6 +2,7 @@ interface ShoppingList {
   id: number;
   name: string;
   shared?: boolean;
+  subscribed?: boolean;
 }
 
 interface ShoppingListItem {
