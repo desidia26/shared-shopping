@@ -189,6 +189,18 @@ app.post('/lists/:listId/unsubscribe', async (req: Request, res: Response) => {
   return res.send('Unsubscribed');
 });
 
+app.get('/notifications/:userId', async (req: Request, res: Response) => {
+  const userId = parseInt(req.params.userId);
+  const notifications = await db.select().from(NOTIFICATIONS).where(eq(NOTIFICATIONS.user_id, userId));
+  return res.send(notifications);
+});
+
+app.delete('/notifications/:notificationId', async (req: Request, res: Response) => {
+  const notificationId = parseInt(req.params.notificationId);
+  await db.delete(NOTIFICATIONS).where(eq(NOTIFICATIONS.id, notificationId)).execute();
+  return res.send('Notification Deleted');
+});
+
 app.get('/guest', async (req: Request, res: Response) => {
   const timestamp = new Date().toISOString();
   const user = await db.insert(APP_USERS).values({ name: `Guest ${timestamp}`, email: `foo@localhost`, password: 'password' }).returning()

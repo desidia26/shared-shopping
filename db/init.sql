@@ -80,23 +80,23 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION notify_users_on_item_added() RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO notification (user_id, message)
-    SELECT lns.user_id, 'Item ' || NEW.name || ' added to list ' || sl.name
-    FROM list_notification_subscription lns
-    JOIN shopping_list sl ON lns.shopping_list_id = sl.id
-    WHERE sl.id = NEW.shopping_list_id;
-    RETURN NEW;
+  INSERT INTO notification (user_id, message)
+  SELECT lns.user_id, 'Item ' || NEW.name || ' added to list ' || sl.name || ' by ' || (SELECT name FROM app_user WHERE id = NEW.created_by)
+  FROM list_notification_subscription lns
+  JOIN shopping_list sl ON lns.shopping_list_id = sl.id
+  WHERE sl.id = NEW.shopping_list_id;
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION notify_users_on_item_removed() RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO notification (user_id, message)
-    SELECT lns.user_id, 'Item ' || OLD.name || ' removed from list ' || sl.name
-    FROM list_notification_subscription lns
-    JOIN shopping_list sl ON lns.shopping_list_id = sl.id
-    WHERE sl.id = OLD.shopping_list_id;
-    RETURN OLD;
+  INSERT INTO notification (user_id, message)
+  SELECT lns.user_id, 'Item ' || OLD.name || ' removed from list ' || sl.name || ' by ' || (SELECT name FROM app_user WHERE id = OLD.created_by)
+  FROM list_notification_subscription lns
+  JOIN shopping_list sl ON lns.shopping_list_id = sl.id
+  WHERE sl.id = OLD.shopping_list_id;
+  RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 

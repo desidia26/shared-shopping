@@ -114,12 +114,25 @@ const unsubscribeFromList = async (listId: number, userId: number) => {
   return response.text();
 }
 
+const getNotifications = async (userId: number) => {
+  const response = await fetch(`${API_URL}notifications/${userId}`);
+  return response.json();
+}
+
+const deleteNotification = async (notificationId: number) => {
+  const response = await fetch(`${API_URL}notifications/${notificationId}`, {
+    method: 'DELETE',
+  });
+  return response.text();
+}
+
 const getGuestUser = async () => {
   const response = await fetch(`${API_URL}guest`);
   return response.json();
 }
 
 export { 
+  deleteNotification,
   getLists, 
   shareList, 
   addList, 
@@ -129,6 +142,7 @@ export {
   unsubscribeFromList,
   renameItem, 
   renameList, 
+  getNotifications,
   login, 
   getGuestUser, 
   subscribeToList 

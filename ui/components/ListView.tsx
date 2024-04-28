@@ -23,6 +23,7 @@ import {
   unsubscribeFromList,
 } from "../services/api";
 import ItemView from "./ItemView";
+import CustomTextInput from "./Inputs/CustomTextInput";
 
 interface ListViewProps {
   list: ListWithItems;
@@ -61,6 +62,7 @@ const ListView: React.FC<ListViewProps> = ({ list, user_id }) => {
         padding: 16,
         backgroundColor: "white",
         borderRadius: 4,
+        maxHeight: "100%",
       }}
     >
       <Row justifyContent="space-between" marginBottom={4}>
@@ -137,24 +139,14 @@ const ListView: React.FC<ListViewProps> = ({ list, user_id }) => {
           return <ItemView item={item} listId={list.id} />;
         }}
         ListFooterComponent={
-          <View
-            style={{
-              flexDirection: "row",
-              marginTop: 16,
-              justifyContent: "space-between",
-            }}
-          >
-            <Input
-              value={newItemName}
-              onChangeText={setNewItemName}
-              placeholder="Enter item name"
-              marginRight={4}
-            />
-            <Button onPress={() => handleAddItem()}>
-              <Text>Add Item</Text>
-            </Button>
-          </View>
+          <CustomTextInput
+            value={newItemName}
+            onChangeText={setNewItemName}
+            placeholder="Enter item name..."
+            onSubmit={handleAddItem}
+          />
         }
+        ListFooterComponentStyle={{ marginTop: 16, width: "100%" }}
       />
       <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
         <Modal.Content maxWidth="400px">
