@@ -36,6 +36,8 @@ The database schema is defined in api/dal/db.ts. The initial database setup is d
 
 ## Running locally
 
+Install Docker following instructions here: https://docs.docker.com/desktop/
+
 ```sh
 docker-compose up
 ```
