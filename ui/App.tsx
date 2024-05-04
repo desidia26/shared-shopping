@@ -17,7 +17,7 @@ export default function App() {
         <SignInView setUser={setUser} />
       ) : (
         <View style={styles.container}>
-          <ListProvider user_id={user.id}>
+          <ListProvider user_id={user.id} username={user.name}>
             <ListsView />
           </ListProvider>
         </View>

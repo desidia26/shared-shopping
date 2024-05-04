@@ -20,7 +20,7 @@ import ListView from "./ListView";
 import CustomTextInput from "./Inputs/CustomTextInput";
 
 const ListsView: React.FC = () => {
-  const { shoppingLists, user_id } = useContext(ListContext);
+  const { shoppingLists, user_id, username } = useContext(ListContext);
   const [notifications, setNotifications] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newListName, setNewListName] = useState("");
@@ -49,6 +49,7 @@ const ListsView: React.FC = () => {
         width: "80%",
       }}
     >
+      <Text>Logged in as: {username}</Text>
       <View
         style={{
           width: "100%",

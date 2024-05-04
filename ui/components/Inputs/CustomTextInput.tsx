@@ -31,7 +31,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
     const fetchSuggestions = async () => {
       if (!useSuggestions || !value) return;
       const suggestions = await getSuggestions(value);
-      if (!suggestions) return;
+      if (!suggestions && suggestions.length > 0) return;
       setClosestSuggestion(suggestions[0].name);
     };
 

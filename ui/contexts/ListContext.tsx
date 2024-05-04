@@ -6,17 +6,20 @@ import { ACTION_NAMES, listReducer } from "../reducers/ListReducer";
 interface ListContextProps {
   shoppingLists: ListWithItems[];
   user_id: number;
+  username: string;
 }
 
 const ListContext = createContext<ListContextProps>({
   shoppingLists: [],
   user_id: 0,
+  username: "",
 } as ListContextProps);
 
 const ListProvider: React.FC<{
   children: React.ReactNode;
   user_id: number;
-}> = ({ children, user_id }) => {
+  username: string;
+}> = ({ children, user_id, username }) => {
   const [shoppingLists, dispatch] = useReducer(listReducer, []);
 
   useEffect(() => {
@@ -109,7 +112,10 @@ const ListProvider: React.FC<{
       dispatch({ type: ACTION_NAMES.SET_LISTS, payload: { lists } });
     })();
   }, []);
-  const value = useMemo(() => ({ shoppingLists, user_id }), [shoppingLists]);
+  const value = useMemo(
+    () => ({ shoppingLists, user_id, username }),
+    [shoppingLists]
+  );
 
   return <ListContext.Provider value={value}>{children}</ListContext.Provider>;
 };

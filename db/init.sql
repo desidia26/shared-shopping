@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS list_notification_subscription (
   FOREIGN KEY (shopping_list_id) REFERENCES shopping_list(id)
 );
 
-
 CREATE TABLE IF NOT EXISTS notification (
   id SERIAL PRIMARY KEY,
   user_id INT,
@@ -141,6 +140,51 @@ INSERT INTO app_user (name, email, password) VALUES ('user', 'qwe@qwe.qwe', 'use
 
 
 
+CREATE OR REPLACE PROCEDURE delete_shopping_list(
+  p_list_id INT
+)
+AS $$
+BEGIN
+  SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+  DELETE FROM shopping_list_shared_user WHERE shopping_list_id = p_list_id;
+  DELETE FROM list_notification_subscription WHERE shopping_list_id = p_list_id;
+  DELETE FROM shopping_list_item WHERE shopping_list_id = p_list_id;
+  DELETE FROM shopping_list WHERE id = p_list_id;
+  COMMIT;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION get_user_details()
+RETURNS TABLE (
+  user_id INT,
+  user_name VARCHAR(50),
+  user_email VARCHAR(100),
+  total_notifications BIGINT,
+  total_lists BIGINT,
+  total_list_items BIGINT,
+  shared_lists TEXT
+)
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    u.id AS user_id,
+    u.name AS user_name,
+    u.email AS user_email,
+    (SELECT COUNT(*) FROM notification n WHERE n.user_id = u.id) AS total_notifications,
+    (SELECT COUNT(*) FROM shopping_list sl WHERE sl.user_id = u.id) AS total_lists,
+    (SELECT COUNT(*) FROM shopping_list_item sli 
+     JOIN shopping_list sl ON sli.shopping_list_id = sl.id
+     WHERE sl.user_id = u.id) AS total_list_items,
+    (SELECT STRING_AGG(sl.name, ',') 
+     FROM shopping_list sl
+     JOIN shopping_list_shared_user slsu ON sl.id = slsu.shopping_list_id
+     WHERE slsu.user_id = u.id) AS shared_lists
+  FROM
+    app_user u;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Insert into common_list_item from common_groceries.csv (newline separated list of common groceries)
 COPY common_list_item (name) FROM '/common_groceries.txt' DELIMITER ',';
