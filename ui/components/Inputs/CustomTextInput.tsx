@@ -7,7 +7,7 @@ interface CustomTextInputProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder: string;
-  onSubmit: (val: string) => void;
+  onSubmit: (val?: string) => void;
   style?: any;
   buttonStyle?: any;
   useSuggestions?: boolean;
@@ -51,6 +51,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
               <Text
                 onPress={() => {
                   onChangeText(closestSuggestion);
+                  onSubmit(closestSuggestion);
                 }}
               >
                 {closestSuggestion}
@@ -62,7 +63,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
               style={buttonStyle}
               icon={<Ionicons name="arrow-up-outline" size={16} />}
               onPress={() => {
-                onSubmit(value);
+                onSubmit();
               }}
             ></IconButton>
           </>

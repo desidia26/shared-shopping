@@ -72,6 +72,8 @@ CREATE OR REPLACE VIEW shopping_list_with_items AS
       LEFT JOIN shopping_list_item sli ON sl.id = sli.shopping_list_id
   GROUP BY sl.id;
 
+
+
 CREATE OR REPLACE FUNCTION delete_guest_users() RETURNS void AS $$
 BEGIN
     DELETE FROM list_notification_subscription WHERE user_id IN (SELECT id FROM app_user WHERE name LIKE 'Guest%');
@@ -139,4 +141,7 @@ INSERT INTO app_user (name, email, password) VALUES ('user', 'qwe@qwe.qwe', 'use
 
 
 
+
+-- Insert into common_list_item from common_groceries.csv (newline separated list of common groceries)
+COPY common_list_item (name) FROM '/common_groceries.txt' DELIMITER ',';
 

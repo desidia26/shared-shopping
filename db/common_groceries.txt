@@ -1,0 +1,106 @@
+Rice
+Bananas
+Peanut Butter
+Canned Tuna
+Canned Chicken
+Canned Kidney Beans
+Canned Black Beans
+Canned Corn
+Canned Green Beans
+Canned Peas
+Canned Carrots
+Canned Red Beans
+Canned Pinto Beans
+Tofu
+Canned Tomatoes
+Canned Tomato Sauce
+Canned Tomato Paste
+Bread
+Pasta
+Eggs
+Milk
+Almond Milk
+Soy Milk
+Rice Milk
+Oat Milk
+Cheese
+Coffee
+Tea
+Sugar
+Salt
+Pepper
+Olive Oil
+Vegetable Oil
+Peanut Oil
+Canola Oil
+Coconut Oil
+Honey
+Maple Syrup
+Soy Sauce
+Hot Sauce
+Ketchup
+Mustard
+Mayonnaise
+Vinegar
+Balsamic Vinegar
+Red Wine Vinegar
+White Wine Vinegar
+Apple Cider Vinegar
+Worcestershire Sauce
+Chicken Breast
+Ground Beef
+Salmon
+Shrimp
+Pork Chops
+Lettuce
+Tomatoes
+Cucumbers
+Bell Peppers
+Onions
+Garlic
+Potatoes
+Carrots
+Broccoli
+Cauliflower
+Spinach
+Kale
+Apples
+Oranges
+Bananas
+Grapes
+Strawberries
+Blueberries
+Raspberries
+Avocado
+Lemons
+Limes
+Cilantro
+Basil
+Mint
+Parsley
+Cumin
+Paprika
+Cinnamon
+Nutmeg
+Ginger
+Vanilla Extract
+Brown Sugar
+Flour
+Baking Powder
+Baking Soda
+Yeast
+Chocolate Chips
+Nuts
+Dried Fruits
+Quinoa
+Couscous
+Barley
+Lentils
+Chickpeas
+Black Beans
+Kidney Beans
+Brown Rice
+White Rice
+Wild Rice
+Oats
+Granola

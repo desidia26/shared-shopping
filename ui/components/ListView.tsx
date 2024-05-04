@@ -37,11 +37,19 @@ const ListView: React.FC<ListViewProps> = ({ list, user_id }) => {
   const [showModal, setShowModal] = React.useState(false);
   const [sharedUsername, setSharedUsername] = React.useState("");
 
-  const handleAddItem = useCallback(() => {
-    if (!newItemName) return;
-    addItemToList(list.id, newItemName, user_id);
-    setNewItemName("");
-  }, [newItemName, list.id]);
+  const handleAddItem = useCallback(
+    (val?: string) => {
+      if (!newItemName) return;
+      if (val) {
+        addItemToList(list.id, val, user_id);
+        setNewItemName("");
+      } else {
+        addItemToList(list.id, newItemName, user_id);
+        setNewItemName("");
+      }
+    },
+    [newItemName, list.id]
+  );
 
   const handleShareList = useCallback(() => {
     setShowModal(true);
