@@ -33,3 +33,13 @@ Both the API and the UI use environment variables for configuration. These are s
 ## Database
 
 The database schema is defined in api/dal/db.ts. The initial database setup is done in db/init.sql.
+
+## Running locally
+
+```sh
+docker-compose up
+```
+
+This will start the API and the UI in Docker containers. The API will be available at `http://localhost:8000` and the UI will be available at `http://localhost:3000`
+
+Default login: `admin:admin`

@@ -5,7 +5,8 @@ import * as constants from './constants'
 import { boolean, integer, json, pgTable, pgView, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV ?? 'local'}` });
+dotenv.config({ path: `.env.local` });
+// dotenv.config({ path: `.env.${process.env.NODE_ENV ?? 'local'}` });
 const username = process.env.DB_USERNAME;
 const password = process.env.DB_PASSWORD;
 const hostname = process.env.DB_HOSTNAME;
