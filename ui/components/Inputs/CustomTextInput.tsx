@@ -1,6 +1,7 @@
-import React from "react";
-import { Input, IconButton } from "native-base";
+import React, { useEffect, useMemo, useState } from "react";
+import { Input, IconButton, Text } from "native-base";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { getSuggestions } from "../../services/api";
 
 interface CustomTextInputProps {
   value: string;
@@ -9,6 +10,7 @@ interface CustomTextInputProps {
   onSubmit: (val: string) => void;
   style?: any;
   buttonStyle?: any;
+  useSuggestions?: boolean;
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -18,7 +20,24 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   onSubmit,
   style,
   buttonStyle,
+  useSuggestions,
 }) => {
+  const [closestSuggestion, setClosestSuggestion] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    setClosestSuggestion(null);
+    const fetchSuggestions = async () => {
+      if (!useSuggestions || !value) return;
+      const suggestions = await getSuggestions(value);
+      if (!suggestions) return;
+      setClosestSuggestion(suggestions[0].name);
+    };
+
+    fetchSuggestions();
+  }, [useSuggestions, value]);
+
   return (
     <Input
       value={value}
@@ -27,13 +46,26 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
       style={style}
       InputRightElement={
         value ? (
-          <IconButton
-            style={buttonStyle}
-            icon={<Ionicons name="arrow-up-outline" size={16} />}
-            onPress={() => {
-              onSubmit(value);
-            }}
-          ></IconButton>
+          <>
+            {closestSuggestion ? (
+              <Text
+                onPress={() => {
+                  onChangeText(closestSuggestion);
+                }}
+              >
+                {closestSuggestion}
+              </Text>
+            ) : (
+              <></>
+            )}
+            <IconButton
+              style={buttonStyle}
+              icon={<Ionicons name="arrow-up-outline" size={16} />}
+              onPress={() => {
+                onSubmit(value);
+              }}
+            ></IconButton>
+          </>
         ) : (
           <></>
         )

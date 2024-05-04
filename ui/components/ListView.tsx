@@ -144,6 +144,7 @@ const ListView: React.FC<ListViewProps> = ({ list, user_id }) => {
             onChangeText={setNewItemName}
             placeholder="Enter item name..."
             onSubmit={handleAddItem}
+            useSuggestions={true}
           />
         }
         ListFooterComponentStyle={{ marginTop: 16, width: "100%" }}

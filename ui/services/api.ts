@@ -126,6 +126,11 @@ const deleteNotification = async (notificationId: number) => {
   return response.text();
 }
 
+const getSuggestions = async (str: string) => {
+  const response = await fetch(`${API_URL}suggestions?str=${str}`);
+  return response.json();
+}
+
 const getGuestUser = async () => {
   const response = await fetch(`${API_URL}guest`);
   return response.json();
@@ -145,5 +150,6 @@ export {
   getNotifications,
   login, 
   getGuestUser, 
-  subscribeToList 
+  subscribeToList,
+  getSuggestions
 };

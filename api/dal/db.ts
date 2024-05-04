@@ -73,6 +73,14 @@ export const NOTIFICATIONS = pgTable('notification', {
   created_at: timestamp('created_at').defaultNow(),
 });
 
+export const COMMON_ITEMS = pgTable('common_list_item', {
+  id: serial('id').primaryKey(),
+  name: text('name'),
+});
+
+
+export type CommonItem = typeof COMMON_ITEMS.$inferSelect;
+export type NewCommonItem = typeof COMMON_ITEMS.$inferInsert;
 
 export type Notification = typeof NOTIFICATIONS.$inferSelect;
 export type NewNotification = typeof NOTIFICATIONS.$inferInsert;

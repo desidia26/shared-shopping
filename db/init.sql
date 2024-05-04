@@ -54,6 +54,11 @@ CREATE TABLE IF NOT EXISTS notification (
   FOREIGN KEY (user_id) REFERENCES app_user(id)
 );
 
+CREATE TABLE IF NOT EXISTS common_list_item (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100)
+);
+
 CREATE OR REPLACE VIEW shopping_list_with_items AS
   SELECT sl.id,
     sl.name,
@@ -62,7 +67,7 @@ CREATE OR REPLACE VIEW shopping_list_with_items AS
     sl.user_id,
     sl.created_at,
     sl.updated_at,
-    json_agg(json_build_object('id', sli.id, 'name', sli.name, 'created_at', sli.created_at, 'updated_at', sli.updated_at)) AS items
+    COALESCE(json_agg(json_build_object('id', sli.id, 'name', sli.name, 'created_at', sli.created_at, 'updated_at', sli.updated_at)) FILTER (WHERE sli.id IS NOT NULL), '[]') AS items
     FROM shopping_list sl
       LEFT JOIN shopping_list_item sli ON sl.id = sli.shopping_list_id
   GROUP BY sl.id;
@@ -100,9 +105,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION add_to_common_list() RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO common_list_item (name)
+  SELECT NEW.name
+  WHERE NOT EXISTS (SELECT 1 FROM common_list_item WHERE name = NEW.name);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 
 DROP TRIGGER IF EXISTS item_added ON shopping_list_item;
 DROP TRIGGER IF EXISTS item_removed ON shopping_list_item;
+DROP TRIGGER IF EXISTS add_to_common_list ON shopping_list_item;
 
 CREATE TRIGGER item_removed
 AFTER DELETE ON shopping_list_item
@@ -113,6 +128,11 @@ CREATE TRIGGER item_added
 AFTER INSERT ON shopping_list_item
 FOR EACH ROW
 EXECUTE FUNCTION notify_users_on_item_added();
+
+CREATE TRIGGER add_to_common_list
+AFTER INSERT ON shopping_list_item
+FOR EACH ROW
+EXECUTE FUNCTION add_to_common_list();
 
 INSERT INTO app_user (name, email, password) VALUES ('admin', 'asd@asd.asd', 'admin');
 INSERT INTO app_user (name, email, password) VALUES ('user', 'qwe@qwe.qwe', 'user');

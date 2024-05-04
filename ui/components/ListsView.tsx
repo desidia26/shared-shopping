@@ -45,7 +45,7 @@ const ListsView: React.FC = () => {
   return (
     <View
       style={{
-        maxHeight: "100%",
+        height: "100%",
         width: "80%",
       }}
     >

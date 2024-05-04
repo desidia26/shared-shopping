@@ -1,8 +1,8 @@
 
 import express, {Request, Response , Application } from 'express';
 import dotenv from 'dotenv';
-import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, APP_USERS, db, getAllLists, getListWithItems, SHOPPING_LIST_SHARED_USER, LIST_NOTIFICATION_SUBSCRIPTION, NOTIFICATIONS} from './dal/db'
-import { and, eq } from 'drizzle-orm';
+import {SHOPPING_LISTS, SHOPPING_LIST_ITEMS, APP_USERS, db, getAllLists, getListWithItems, SHOPPING_LIST_SHARED_USER, LIST_NOTIFICATION_SUBSCRIPTION, NOTIFICATIONS, COMMON_ITEMS} from './dal/db'
+import { and, eq, ilike } from 'drizzle-orm';
 import WebSocket from 'ws';
 dotenv.config();
 
@@ -205,6 +205,12 @@ app.get('/guest', async (req: Request, res: Response) => {
   const timestamp = new Date().toISOString();
   const user = await db.insert(APP_USERS).values({ name: `Guest ${timestamp}`, email: `foo@localhost`, password: 'password' }).returning()
   return res.send(user);
+})
+
+app.get('/suggestions', async (req: Request, res: Response) => {
+  const str = req.query.str as string;
+  const commonItems = await db.select().from(COMMON_ITEMS).where(ilike(COMMON_ITEMS.name, `%${str}%`));
+  return res.send(commonItems);
 })
 
 const server = app.listen(port, () => {
